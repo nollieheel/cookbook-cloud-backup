@@ -1,0 +1,7 @@
+name             'cookbook-cloud-backup'
+maintainer       'Chromedia Far East, Inc.'
+maintainer_email 'sysadmin@chromedia.com'
+license          'All rights reserved'
+description      'Installs/Configures cookbook-cloud-backup'
+long_description 'Installs/Configures cookbook-cloud-backup'
+version          '0.1.0'

@@ -1,0 +1,30 @@
+---
+driver:
+  name: ec2
+  security_group_ids: ["sg-7f6fda18"]
+  region: us-west-2
+  availability_zone: b
+  subnet_id: subnet-d530d8b1
+  instance_type: t2.micro
+  associate_public_ip: true
+  require_chef_omnibus: 12.12.15
+  shared_credentials_profile: earth
+
+provisioner:
+  name: chef_zero
+
+platforms:
+  - name: ubuntu-14.04
+    driver:
+      image_id: ami-b92fa3d9
+    transport:
+      username: ubuntu
+      ssh_key: ~/.ssh/cfe_stg_20160222.pem
+
+suites:
+  - name: default
+    data_bags_path: "data_bags"
+    encrypted_data_bag_secret_key_path: ".chef/encrypted_data_bag_secret"
+    run_list:
+      - recipe[cookbook-cloud-backup::default]
+    attributes:
