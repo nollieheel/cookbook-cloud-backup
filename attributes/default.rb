@@ -26,44 +26,49 @@ default['cookbook-cloud-backup']['targets'] = [
 #                      #          one 'default' can exist at a time
 #    :paths => [
 #      {
-#        :path            => '/var/sampledir',
-#        :backup_filename => 'sampledir', # default: basename of path
-#        :load_creates    => nil # file location, relative to path value
+#        :path            => '/var/sampledir', # required
+#        :backup_filename => 'sampledir', # default: basename of :path
+#        :load_creates    => nil # file location, relative to :path value
+#        :load_path       => '/var' # default: dirname of :path
 #      }
 #    ],
 #
-#    :backup => true, # default: true
-#    :backup_encrypted => false, # default: false
-#    :backup_sched => nil, # default: '0 0 * * *'
+#    :backup        => true, # default: true
+#    :backup_sched  => nil, # default: '0 0 * * *'
 #    :backup_mailto => nil, # default: ''
 #
 #    :load => false, # default: false
 #
-#    :encrypt_pub_key => nil, # actual contents of key, if used
+#    # If encryption keys are given, the backup archive will
+#    # be encrypted. Reloading will also assume encrypted backups.
+#
+#    :encrypt_pub_key  => nil, # actual contents of key, if used
 #    :encrypt_priv_key => nil, # actual contents of key, if used
 #
-#    :driver_vars => [] # overrides default values in the 'drivers'
-#                       # array for each driver
+#    :encrypt_pub_path  => nil, # key can also be given as a path
+#    :encrypt_priv_path => nil, # key can also be given as a path
+#
+#    :drivers => [] # overrides default values in 'default_drivers'
 #  }
 ]
 
-default['cookbook-cloud-backup']['drivers'] = [
+default['cookbook-cloud-backup']['default_drivers'] = [
   {
-    :s3 => {
-      :enable => true,
+    'S3' => {
+      :enable => true, # default: true
       :bucket => nil,
       :region => nil
     }
   }
 ]
 
-default['cookbook-cloud-backup']['script_dir'] = '/opt/cloud-backup'
-default['cookbook-cloud-backup']['log_dir']    = '/var/log/cloud-backup'
-default['cookbook-cloud-backup']['tmp_dir']    = '/tmp/cloud-backup'
+default['cookbook-cloud-backup']['dir_script'] = '/opt/cloud-backup'
+default['cookbook-cloud-backup']['dir_log']    = '/var/log/cloud-backup'
+default['cookbook-cloud-backup']['dir_tmp']    = '/tmp/cloud-backup'
 
 # Constants
-default['cookbook-cloud-backup']['tar_bin'] = '/bin/tar'
-default['cookbook-cloud-backup']['aws_bin'] = value_for_platform(
+default['cookbook-cloud-backup']['bin_tar'] = '/bin/tar'
+default['cookbook-cloud-backup']['bin_aws'] = value_for_platform(
   'ubuntu'  => { 'default' => '/usr/local/bin/aws' },
   'default' => '/usr/local/bin/aws' # haven't tested on other platforms yet
 )

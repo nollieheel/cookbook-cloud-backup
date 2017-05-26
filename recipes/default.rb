@@ -21,65 +21,12 @@
 include_recipe 'awscli'
 include_recipe 'tar'
 
-attribs = node[cookbook_name]
-
-directory attribs['script_dir'] { recursive true }
-directory attribs['log_dir'] { recursive true }
-
-#TODO seems unecessary. Just do the checking while iterating through the targets to backup them up.
-attribs['targets'].each do |target|
-  enable = target.has_key?(:backup) ? target[:backup] : true
-  is_enc = enable && target[:backup_encrypted]
-
-  if !target[:encrypt_pub_key] && is_enc
-    Chef::Application.fatal!("No encryption public key supplied for #{target[:id]}")
-  end
+ids = node[cookbook_name]['targets'].map do |x|
+  x[:id] ? x[:id] : 'default'
+end
+if ids.length != ids.uniq.length
+  Chef::Application.fatal!('Duplicate or nonexistent values for id in targets.')
 end
 
-#TODO learn about ruby classes
-pub_key_file = "#{attribs['script_dir']}/pub.key"
-
-file pub_key_file do
-  content   attribs['encrypt']['pub_key']
-  mode      0600
-  owner     'root'
-  group     'root'
-  sensitive true
-  only_if   { is_any_enc }
-end
-
-attribs['backups'].each do |back|
-  snam   = back[:script_name] || 'default'
-  sname  = "#{snam.gsub(' ', '-')}_backup2s3"
-  enable = back.has_key?(:enable) ? back[:enable] : true
-
-  template "#{attribs['script_dir']}/#{sname}" do
-    mode   0644
-    source 'backup_file_to_s3.erb'
-    variables(
-      :aws_bin      => attribs['aws_bin'],
-      :tar_bin      => attribs['tar_bin'],
-      :tmp_dir      => attribs['tmp_dir'],
-      :bucket       => back[:bucket] || attribs['bucket'],
-      :region       => back[:region] || attribs['region'],
-      :pub_key_file => pub_key_file,
-      :paths        => back[:paths]
-    )
-    action( enable ? :create : :delete )
-  end
-
-  sched = attribs['cron']['sched'].split(' ')
-  cron_d sname do
-    command "bash #{attribs['script_dir']}/#{sname} >> "\
-            "#{attribs['log_dir']}/#{sname}.log 2>&1"
-    minute  sched[0]
-    hour    sched[1]
-    day     sched[2]
-    month   sched[3]
-    weekday sched[4]
-    mailto  attribs['cron']['mailto']
-    path    '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
-
-    action( enable ? :create : :delete )
-  end
-end
+include_recipe "#{cookbook_name}::do_backup"
+include_recipe "#{cookbook_name}::do_reload"

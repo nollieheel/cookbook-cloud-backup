@@ -7,3 +7,9 @@ long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 source_url       'https://github.com/nollieheel/cookbook-cloud-backup'
 issues_url       'https://github.com/nollieheel/cookbook-cloud-backup/issues'
 version          '0.1.0'
+
+depends 'awscli'
+depends 'cron'
+depends 'tar'
+
+supports 'ubuntu', '14.04'
