@@ -1,7 +1,7 @@
 #
 # Author:: Earth U (<iskitingbords @ gmail.com>)
 # Cookbook Name:: cookbook-cloud-backup
-# Library:: cb_driver_s3
+# Library:: cb_driver_base
 #
 # Copyright 2017, Earth U
 #
@@ -20,28 +20,33 @@
 
 module CloudBackup
   module Driver
-    class S3 < CloudBackup::Driver::Base
+    class Base
+      include CloudBackup::DriverLib
 
-#      def initialize(name, dirs: {}, bins: {},
-#                     opts: {})
-#        @name = name || 'default'
-#
-#        @dir_script = dirs[:script] || '/opt/cloud-backup'
-#        @dir_log = dirs[:log] || '/var/log/cloud-backup'
-#        @dir_tmp = dirs[:tmp] || '/tmp/cloud-backup'
-#
-#        @bin_tar = bins[:tar] || '/bin/tar'
-#        @bin_aws = bins[:aws] || '/usr/local/bin/aws'
-#
-#        @opts = opts
-#
-#        @path_pub_key = nil
-#        @path_priv_key = nil
-#      end
-#
-#      def init_backup_enc(rc, key: nil, path: nil)
-#        @path_pub_key = do_init_enc(rc, @name, @dir_script, key, path, 'pub')
-#      end
+      def initialize(target, dirs: {}, bins: {})
+
+        # dirs and bins
+        @dir_script = dirs[:script] || '/opt/cloud-backup'
+        @dir_log    = dirs[:log] || '/var/log/cloud-backup'
+        @dir_tmp    = dirs[:tmp] || '/tmp/cloud-backup'
+
+        @bin_tar = bins[:tar] || '/bin/tar'
+        @bin_aws = bins[:aws] || '/usr/local/bin/aws'
+
+        # default name
+        @name   = target[:id] || 'default'
+
+        # just store the node attribs
+        @target = target
+
+        # path to encryption keys if used
+        @key_pub  = nil
+        @key_priv = nil
+      end
+
+      def init_backup_enc(rc)
+        do_init_enc('pub', rc)
+      end
 
 #      # Calling a chef resource:
 #      r = Chef::Resource::Template.new('/home/ubuntu/stuff', run_context)

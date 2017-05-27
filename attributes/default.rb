@@ -62,13 +62,13 @@ default['cookbook-cloud-backup']['default_drivers'] = [
   }
 ]
 
-default['cookbook-cloud-backup']['dir_script'] = '/opt/cloud-backup'
-default['cookbook-cloud-backup']['dir_log']    = '/var/log/cloud-backup'
-default['cookbook-cloud-backup']['dir_tmp']    = '/tmp/cloud-backup'
+default['cookbook-cloud-backup']['dir']['script'] = '/opt/cloud-backup'
+default['cookbook-cloud-backup']['dir']['log']    = '/var/log/cloud-backup'
+default['cookbook-cloud-backup']['dir']['tmp']    = '/tmp/cloud-backup'
 
 # Constants
-default['cookbook-cloud-backup']['bin_tar'] = '/bin/tar'
-default['cookbook-cloud-backup']['bin_aws'] = value_for_platform(
+default['cookbook-cloud-backup']['bin']['tar'] = '/bin/tar'
+default['cookbook-cloud-backup']['bin']['aws'] = value_for_platform(
   'ubuntu'  => { 'default' => '/usr/local/bin/aws' },
   'default' => '/usr/local/bin/aws' # haven't tested on other platforms yet
 )
