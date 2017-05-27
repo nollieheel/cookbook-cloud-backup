@@ -18,18 +18,17 @@
 # limitations under the License.
 #
 
+::Chef::Recipe.send(:include, CloudBackup)
+
 attribs = node[cookbook_name]
 
 #directory "#{attribs['script_dir']}/keys" { recursive true }
 #directory attribs['log_dir'] { recursive true }
 
-# Get Class name from string:
-#dclass = CloudBackup::Driver.const_get('S3')
-#s3 = dclass.new()
-
 attribs['targets'].each do |t|
-  s3 = CloudBackup::S3.new(t[:id])
-  s3.init_backup_enc(t[:encrypt_pub_key], t[:encrypt_pub_path])
+  #testing
+  s3 = Driver.const_get('S3').new(t[:id])
+  s3.init_backup_enc(run_context, key: t[:encrypt_pub_key], path: t[:encrypt_pub_path])
 end
 
 #pub_key_file = "#{attribs['script_dir']}/pub.key"
