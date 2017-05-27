@@ -39,11 +39,11 @@ module CloudBackup
         rf.content @target[symkey]
         rf.run_action :create_if_missing
 
-        @key_pub = key_path
-      elsif @target[:sympath]
-        @key_pub = @target[:sympath]
+        key_path
+      elsif @target[sympath]
+        @target[sympath]
       else
-        @key_pub = nil
+        nil
       end
     end
 
@@ -79,5 +79,5 @@ module CloudBackup
 #
 #    def do_script_template(rc, name, dir_script, path_key)
 #    end
-  end
+#  end
 end

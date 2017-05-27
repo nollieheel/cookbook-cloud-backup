@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), 'cb_driverlib')
+
 module CloudBackup
   module Driver
     class Base
@@ -45,7 +47,7 @@ module CloudBackup
       end
 
       def init_backup_enc(rc)
-        do_init_enc('pub', rc)
+        @key_pub = do_init_enc('pub', rc)
       end
 
 #      # Calling a chef resource:

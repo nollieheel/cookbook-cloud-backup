@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), 'cb_driver_base')
+
 module CloudBackup
   module Driver
     class S3 < CloudBackup::Driver::Base
