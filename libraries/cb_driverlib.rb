@@ -47,7 +47,7 @@ module CloudBackup
       end
     end
 
-    def do_script_template(rc, name, dir_script, path_key)
+    def do_script_template(rc)
     end
   end
 

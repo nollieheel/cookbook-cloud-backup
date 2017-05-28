@@ -23,6 +23,8 @@ require File.join(File.dirname(__FILE__), 'cb_driverlib')
 module CloudBackup
   module Driver
     class Base
+      CB_NAME = 'cloud-backup'
+
       include CloudBackup::DriverLib
 
       def initialize(target, dirs: {}, bins: {})
@@ -49,18 +51,6 @@ module CloudBackup
       def init_backup_enc(rc)
         @key_pub = do_init_enc('pub', rc)
       end
-
-#      # Calling a chef resource:
-#      r = Chef::Resource::Template.new('/home/ubuntu/stuff', run_context)
-#      r.source 'stuff.erb'
-#      r.cookbook 'mycookbook'
-#      r.owner 'root'
-#      r.group 'root'
-#      r.mode '0400'
-#      r.variables(
-#        :var => 'dsad'
-#      )
-#      r.run_action :create
 
     end
   end

@@ -23,6 +23,20 @@ require File.join(File.dirname(__FILE__), 'cb_driver_base')
 module CloudBackup
   module Driver
     class S3 < CloudBackup::Driver::Base
+      TEMPLATE_SRC = 'cloud-backup-s3.erb'
+
+      def do_script_template(rc)
+        spath = "#{@dir_script}/cb-s3_#{@name.gsub(' ', '-')}"
+        rt = Chef::Resource::Template.new(spath, rc)
+        rt.source TEMPLATE_SRC
+        rt.cookbook CB_NAME
+        rt.owner 'root'
+        rt.group 'root'
+        rt.mode 0400
+        rt.variables(
+        )
+        rt.run_action :create
+      end
 
     end
   end
