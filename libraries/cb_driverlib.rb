@@ -51,33 +51,4 @@ module CloudBackup
     end
   end
 
-#  module DriverCommon
-#    def do_init_enc(rc, name, dir_script, key, path, type)
-#      if key
-#        key_path = "#{dir_script}/keys/#{type}_#{name.gsub(' ', '-')}.pem"
-#        keys_dir = File.dirname(key_path)
-#
-#        rd = Chef::Resource::Directory.new(keys_dir, rc)
-#        rd.recursive true
-#        rd.run_action :create
-#
-#        rf = Chef::Resource::File.new(key_path, rc)
-#        rf.mode 0600
-#        rf.owner 'root'
-#        rf.group 'root'
-#        rf.sensitive true
-#        rf.content key
-#        rf.run_action :create_if_missing
-#
-#        key_path
-#      elsif path
-#        path
-#      else
-#        nil
-#      end
-#    end
-#
-#    def do_script_template(rc, name, dir_script, path_key)
-#    end
-#  end
 end

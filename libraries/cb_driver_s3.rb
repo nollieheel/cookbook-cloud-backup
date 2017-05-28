@@ -24,39 +24,6 @@ module CloudBackup
   module Driver
     class S3 < CloudBackup::Driver::Base
 
-#      def initialize(name, dirs: {}, bins: {},
-#                     opts: {})
-#        @name = name || 'default'
-#
-#        @dir_script = dirs[:script] || '/opt/cloud-backup'
-#        @dir_log = dirs[:log] || '/var/log/cloud-backup'
-#        @dir_tmp = dirs[:tmp] || '/tmp/cloud-backup'
-#
-#        @bin_tar = bins[:tar] || '/bin/tar'
-#        @bin_aws = bins[:aws] || '/usr/local/bin/aws'
-#
-#        @opts = opts
-#
-#        @path_pub_key = nil
-#        @path_priv_key = nil
-#      end
-#
-#      def init_backup_enc(rc, key: nil, path: nil)
-#        @path_pub_key = do_init_enc(rc, @name, @dir_script, key, path, 'pub')
-#      end
-
-#      # Calling a chef resource:
-#      r = Chef::Resource::Template.new('/home/ubuntu/stuff', run_context)
-#      r.source 'stuff.erb'
-#      r.cookbook 'mycookbook'
-#      r.owner 'root'
-#      r.group 'root'
-#      r.mode '0400'
-#      r.variables(
-#        :var => 'dsad'
-#      )
-#      r.run_action :create
-
     end
   end
 end
