@@ -34,6 +34,13 @@ module CloudBackup
         rt.group 'root'
         rt.mode 0400
         rt.variables(
+          :dir_tmp      => @dir_tmp,
+          :bin_aws      => @bin_aws,
+          :bin_tar      => @bin_tar,
+          :is_encrypted => !!@key_pub,
+          :key_pub      => @key_pub,
+          :bucket       => @target[:bucket],
+          :region       => @target[:region]
         )
         rt.run_action :create
       end

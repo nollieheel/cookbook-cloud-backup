@@ -6,7 +6,7 @@
 
 set -e
 
-suffix=.backup_file_to_s3
+suffix=.cloud-backup
 if [ -f /tmp/*"$suffix" ] ; then
     ( >&2 echo "[ERROR] Another operation might still be in progress" )
     exit 200
@@ -15,13 +15,15 @@ tmp_file=$( mktemp --suffix "$suffix" )
 
 bucket=<%= @bucket %>
 region=<%= @region %>
-bak_dir=<%= @tmp_dir %>
+bak_dir=<%= @dir_tmp %>
 
-aws_bin=<%= @aws_bin %>
-tar_bin=<%= @tar_bin %>
+aws_bin=<%= @bin_aws %>
+tar_bin=<%= @bin_tar %>
 
-pub_key_file=<%= @pub_key_file %>
+<% if @is_encrypted -%>
+pub_key_file=<%= @key_pub %>
 
+<% end -%>
 # Create the tarball.
 # Args:
 #   $1 = full path to be backed up, e.g. '/var/src/mydir'
@@ -30,10 +32,11 @@ tar_dir() {
     bname=$( basename "$1" )
     dname=$( dirname "$1" )
 
-    echo "$(date) : Creating tarball from ${1}"
+    echo "$(date) : Creating tarball ${2}.tar.gz from ${1}"
     "$tar_bin" -C "${dname}" -czf "${bak_dir}/${2}.tar.gz" "$bname"
 }
 
+<% if @is_encrypted -%>
 # Encrypt a tarball using OpenSSL and a given public key.
 # The original file will be replaced by a new one with the same filename,
 # suffixed with '.enc'.
@@ -48,77 +51,25 @@ encrypt_tarball() {
     rm "${bak_dir}/${1}.tar.gz"
 }
 
-# Rotate the number suffixes of the current backups in S3
-# Args:
-#   $1 = filename, sans '.tar.gz' extension, e.g. 'myfilename'
-#   $2 = max number of backup copies to store at a time
-increment_backup_names() {
-    bak_keyname=$1
-    max_backups=$2
-
-    # Backups will stored inside subdirectories (prefixes)
-    # in S3, so only look at 'PRE' objects.
-    baks=$( "$aws_bin" --output text --region "$region" \
-            s3 ls "s3://${bucket}/" | grep '^\s*PRE' | \
-            sed -e 's/^ *PRE //' -e 's/\/$//' | \
-            grep "^${bak_keyname}" || echo "" )
-
-    echo "$(date) : Backup rotation for ${bak_keyname}"
-    start=$((max_backups - 1))
-
-    for (( x=start ; x > 0 ; x-- )) ; do
-        if echo "$baks" | grep "^${bak_keyname}\\.${x}\$" ; then
-            newx=$((x + 1))
-            if [[ $newx -lt $max_backups ]] ; then
-                "$aws_bin" --region "$region" \
-                    s3 mv --recursive "s3://${bucket}/${bak_keyname}.${x}" \
-                          "s3://${bucket}/${bak_keyname}.${newx}"
-            else
-                "$aws_bin" --region "$region" \
-                    s3 rm --recursive "s3://${bucket}/${bak_keyname}.${x}"
-            fi
-        fi
-    done
-
-    if echo "$baks" | grep "^${bak_keyname}\$" ; then
-        if [[ $max_backups -gt 1 ]] ; then
-            "$aws_bin" --region "$region" \
-                s3 mv --recursive "s3://${bucket}/${bak_keyname}" \
-                      "s3://${bucket}/${bak_keyname}.1"
-        else
-            "$aws_bin" --region "$region" \
-                s3 rm --recursive "s3://${bucket}/${bak_keyname}"
-        fi
-    fi
-}
-
+<% end -%>
 # Upload the tarball to the S3 bucket. It will be uploaded
-# to this location: ${bucket}/basename/myfile.tar.gz.enc
+# to this location: ${bucket}/myfile.tar.gz.enc
 #
-# A timestamp file will also be uploaded to this location:
-# ${bucket}/basename/YYYY-MM-DDThh:mm:ss.txt
 # Args:
 #   $1 = filename, sans '.tar.gz' extension, e.g. 'myfilename'
-#   $2 = if file is encrypted or not (boolean)
 upload_to_s3() {
     bak_keyname=$1
-    if [ "$2" = true ] ; then
-        fname="${1}.tar.gz.enc"
-    else
-        fname="${1}.tar.gz"
-    fi
+<% if @is_encrypted -%>
+    fname="${1}.tar.gz.enc"
+<% else -%>
+    fname="${1}.tar.gz"
+<% end -%>
 
     echo "$(date) : Upload ${fname} to S3 bucket ${bucket}"
 
-    stamp=$( date +"%FT%T" )
-    echo "Uploaded: ${stamp}" > "${bak_dir}/${stamp}.txt"
-
     "$aws_bin" --region "$region" \
         s3 mv "${bak_dir}/${fname}" \
-        "s3://${bucket}/${bak_keyname}/${fname}"
-    "$aws_bin" --region "$region" \
-        s3 mv "${bak_dir}/${stamp}.txt" \
-        "s3://${bucket}/${bak_keyname}/${stamp}.txt"
+        "s3://${bucket}/${fname}"
 }
 
 if [[ ! -d "$bak_dir" ]] ; then
@@ -126,15 +77,16 @@ if [[ ! -d "$bak_dir" ]] ; then
 fi
 
 <% @paths.each do |path| -%>
-<%   bname  = path[:bak_filename] || ::File.basename(path[:path]) -%>
-<%   is_enc = path.has_key?(:bak_encrypted) ? path[:bak_encrypted] : false -%>
+<%   bname  = path[:backup_filename] || ::File.basename(path[:path]) -%>
 if [[ -d <%= path[:path] %> || -f <%= path[:path] %> ]] ; then
-    increment_backup_names <%= bname %> <%= path[:bak_maxcopies] || 30 %>
-    tar_dir <%= path[:path] %> <%= bname %>
-<%   if is_enc -%>
-    encrypt_tarball <%= bname %>
+    stamp=$( date +"%FT%T" )
+    bname="<%= bname %>_${stamp}"
+
+    tar_dir <%= path[:path] %> "$bname"
+<%   if @is_encrypted -%>
+    encrypt_tarball "$bname"
 <%   end -%>
-    upload_to_s3 <%= bname %> <%= is_enc %>
+    upload_to_s3 "$bname"
 else
     >&2 echo "$(date) [WARNING] Path <%= path[:path] %> does not exist"
 fi
