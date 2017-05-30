@@ -48,19 +48,17 @@ default['cookbook-cloud-backup']['targets'] = [
 #    :encrypt_pub_path  => nil, # key can also be given as a path
 #    :encrypt_priv_path => nil, # key can also be given as a path
 #
-#    :drivers => [] # overrides default values in 'default_drivers'
+#    :drivers => {} # overrides default values in 'default_drivers'
 #  }
 ]
 
-default['cookbook-cloud-backup']['default_drivers'] = [
-  {
-    'S3' => {
-      :enable => true, # default: true
-      :bucket => nil,
-      :region => nil
-    }
+default['cookbook-cloud-backup']['default_drivers'] = {
+  'S3' => {
+    :enable => true, # default: true
+    :bucket => nil,
+    :region => nil
   }
-]
+}
 
 default['cookbook-cloud-backup']['dir']['script'] = '/opt/cloud-backup'
 default['cookbook-cloud-backup']['dir']['log']    = '/var/log/cloud-backup'

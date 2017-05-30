@@ -19,6 +19,8 @@
 #
 
 module CloudBackup
+  CB_NAME = 'cookbook-cloud-backup'
+
   module DriverLib
     def do_init_enc(type, rc)
       symkey = "encrypt_#{type}_key".to_sym
@@ -47,7 +49,7 @@ module CloudBackup
       end
     end
 
-    def do_script_template(rc)
+    def script_template(rc)
     end
   end
 

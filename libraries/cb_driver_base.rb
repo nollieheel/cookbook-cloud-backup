@@ -23,8 +23,6 @@ require File.join(File.dirname(__FILE__), 'cb_driverlib')
 module CloudBackup
   module Driver
     class Base
-      CB_NAME = 'cloud-backup'
-
       include CloudBackup::DriverLib
 
       def initialize(target, dirs: {}, bins: {})

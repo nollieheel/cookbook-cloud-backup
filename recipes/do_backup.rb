@@ -29,6 +29,7 @@ attribs['targets'].each do |t|
   #testing
   s3 = Driver.const_get('S3').new(t, dirs: attribs['dir'], bins: attribs['bin'])
   s3.init_backup_enc(run_context)
+  s3.script_template(run_context)
 end
 
 #pub_key_file = "#{attribs['script_dir']}/pub.key"
