@@ -46,8 +46,16 @@ module CloudBackup
         @key_priv = nil
       end
 
+      ## Call this function before attempting any backup script creation.
+      ##
       def init_backup_enc(rc)
         @key_pub = do_init_enc('pub', rc)
+      end
+
+      ## Create the backup script and set cron schedule to run it.
+      ##
+      def sched_script(action, rc)
+        # Override in Subclass
       end
 
     end

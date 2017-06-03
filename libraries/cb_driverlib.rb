@@ -19,9 +19,12 @@
 #
 
 module CloudBackup
-  CB_NAME = 'cookbook-cloud-backup'
-
   module DriverLib
+    CB_NAME = 'cookbook-cloud-backup'
+
+    ## If encryption is enabled for backup/reload, create the key file
+    ## (if needed), and put the key path in @key_pub/@key_priv.
+    ##
     def do_init_enc(type, rc)
       symkey = "encrypt_#{type}_key".to_sym
       sympath = "encrypt_#{type}_path".to_sym
@@ -49,8 +52,46 @@ module CloudBackup
       end
     end
 
-    def script_template(rc)
+    def get_script_path(pref)
+      "#{@dir_script}/#{pref}_#{@name.gsub(' ', '-')}"
     end
+
+    ## Just create the cloud backup shell script.
+    ##
+    def do_render_script(pref, source, vars, action, rc)
+      rt = Chef::Resource::Template.new(get_script_name(pref), rc)
+      rt.source source
+      rt.cookbook CB_NAME
+      rt.owner 'root'
+      rt.group 'root'
+      rt.mode 0400
+      rt.variables vars
+      rt.run_action action
+    end
+
+    ## Schedule the backup script in cron
+    ##
+    def do_cron_sched(pref, action, rc)
+      rd = Chef::Resource::Directory.new(@dir_log, rc)
+      rd.recursive true
+      rd.run_action :create
+
+      bsched = @target[:backup_sched] || '0 0 * * *'
+      bmailto = @target[:backup_mailto] || "''"
+      sched = bsched.split(' ')
+      rc = Chef::Resource::Cron_d.new(::File.basename(sname), rc)
+      rc.command "bash #{get_script_name(pref)} >> "\
+                 "#{@dir_log}/#{get_script_name(pref)}.log 2>&1"
+      rc.minute sched[0]
+      rc.hour sched[1]
+      rc.day sched[2]
+      rc.month sched[3]
+      rc.weekday sched[4]
+      rc.mailto bmailto
+      rc.path '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
+      rc.run_action action
+    end
+
   end
 
 end
