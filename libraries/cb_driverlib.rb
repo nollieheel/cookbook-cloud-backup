@@ -59,7 +59,7 @@ module CloudBackup
     ## Just create the cloud backup shell script.
     ##
     def do_render_script(pref, source, vars, action, rc)
-      rt = Chef::Resource::Template.new(get_script_name(pref), rc)
+      rt = Chef::Resource::Template.new(get_script_path(pref), rc)
       rt.source source
       rt.cookbook CB_NAME
       rt.owner 'root'
@@ -79,9 +79,11 @@ module CloudBackup
       bsched = @target[:backup_sched] || '0 0 * * *'
       bmailto = @target[:backup_mailto] || "''"
       sched = bsched.split(' ')
-      rc = Chef::Resource::Cron_d.new(::File.basename(sname), rc)
-      rc.command "bash #{get_script_name(pref)} >> "\
-                 "#{@dir_log}/#{get_script_name(pref)}.log 2>&1"
+      spath = get_script_path(pref)
+      sname = ::File.basename(spath)
+
+      rc = Chef::Resource::CronD.new(sname, rc)
+      rc.command "bash #{spath} >> #{@dir_log}/#{sname}.log 2>&1"
       rc.minute sched[0]
       rc.hour sched[1]
       rc.day sched[2]

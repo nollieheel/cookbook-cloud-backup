@@ -32,6 +32,7 @@ attribs['targets'].each do |t|
   s3.sched_script(:create, run_context)
 end
 
+
 #pub_key_file = "#{attribs['script_dir']}/pub.key"
 
 #file pub_key_file do
