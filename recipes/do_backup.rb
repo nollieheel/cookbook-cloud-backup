@@ -32,7 +32,7 @@ attribs['targets'].each do |t|
   s3.sched_script(:create, run_context)
 
   s3.init_reload_enc(run_context)
-  s3.do_cleanup_enc
+  s3.do_cleanup_enc(run_context)
 end
 
 
