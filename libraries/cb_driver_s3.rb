@@ -23,25 +23,18 @@ require File.join(File.dirname(__FILE__), 'cb_driver_base')
 module CloudBackup
   module Driver
     class S3 < CloudBackup::Driver::Base
-      TEMPLATE_SRC = 'cloud-backup-s3.erb'
-      PREF_SCRIPT = 'cb-s3'
 
       def sched_script(action, rc)
         do_render_script(
-          PREF_SCRIPT, TEMPLATE_SRC,
+          's3',
           {
-            :paths        => @target[:paths],
-            :dir_tmp      => @dir_tmp,
-            :bin_aws      => @bin_aws,
-            :bin_tar      => @bin_tar,
-            :is_encrypted => !!@key_pub,
-            :key_pub      => @key_pub,
-            :bucket       => @target[:drivers]['S3'][:bucket],
-            :region       => @target[:drivers]['S3'][:region]
+            :bin_aws => @bin['aws'],
+            :bucket  => @vars[:bucket],
+            :region  => @vars[:region]
           },
           action, rc
         )
-        do_cron_sched(PREF_SCRIPT, action, rc)
+        do_cron_sched('s3', action, rc)
       end
 
     end

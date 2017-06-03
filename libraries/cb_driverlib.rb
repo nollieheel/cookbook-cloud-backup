@@ -21,73 +21,37 @@
 module CloudBackup
   module DriverLib
     CB_NAME = 'cookbook-cloud-backup'
-
-    ## If encryption is enabled for backup/reload, create the key file
-    ## (if needed), and put the key path in @key_pub/@key_priv.
-    ##
-    def do_init_enc(type, rc)
-      symkey = "encrypt_#{type}_key".to_sym
-      sympath = "encrypt_#{type}_path".to_sym
-
-      if @target[symkey]
-        key_dir = "#{@dir_script}/keys"
-        rd = Chef::Resource::Directory.new(key_dir, rc)
-        rd.recursive true
-        rd.run_action :create
-
-        key_path = "#{key_dir}/#{type}_#{@name.gsub(' ', '-')}.pem"
-        rf = Chef::Resource::File.new(key_path, rc)
-        rf.mode 0600
-        rf.owner 'root'
-        rf.group 'root'
-        rf.sensitive true
-        rf.content @target[symkey]
-        rf.run_action :create_if_missing
-
-        key_path
-      elsif @target[sympath]
-        @target[sympath]
-      else
-        nil
-      end
-    end
-
-    ## Delete the (private) key file.
-    ##
-    def do_cleanup_enc(rc)
-      if @key_priv
-        rf = Chef::Resource::File.new(@key_priv, rc)
-        rf.run_action :delete
-      end
-    end
+    TEMPLATE_SRC = 'cloud-backup-'
+    PREF_SCRIPT = 'cb-'
 
     def get_script_path(pref)
-      "#{@dir_script}/#{pref}_#{@name.gsub(' ', '-')}"
+      "#{@dir_script}/#{PREF_SCRIPT}#{pref.downcase}_#{@name.gsub(' ', '-')}"
     end
 
     ## Just create the cloud backup shell script.
     ##
-    def do_render_script(pref, source, vars, action, rc)
+    def do_render_script(pref, templatevars, action, rc)
+      templatevars[:paths]   = @paths
+      templatevars[:dir_tmp] = @dir['tmp']
+      templatevars[:bin_tar] = @bin['tar']
+
+      templatevars[:is_encrypted] = !!@key_pub
+      templatevars[:key_pub]      = @key_pub
+
       rt = Chef::Resource::Template.new(get_script_path(pref), rc)
-      rt.source source
+      rt.source "#{TEMPLATE_SRC}#{pref.downcase}.erb"
       rt.cookbook CB_NAME
       rt.owner 'root'
       rt.group 'root'
       rt.mode 0400
-      rt.variables vars
+      rt.variables templatevars
       rt.run_action action
     end
 
     ## Schedule the backup script in cron
     ##
     def do_cron_sched(pref, action, rc)
-      rd = Chef::Resource::Directory.new(@dir_log, rc)
-      rd.recursive true
-      rd.run_action :create
-
-      bsched = @target[:backup_sched] || '0 0 * * *'
-      bmailto = @target[:backup_mailto] || "''"
-      sched = bsched.split(' ')
+      sched = @backup_sched.split(' ')
       spath = get_script_path(pref)
       sname = ::File.basename(spath)
 
@@ -98,7 +62,7 @@ module CloudBackup
       rc.day sched[2]
       rc.month sched[3]
       rc.weekday sched[4]
-      rc.mailto bmailto
+      rc.mailto @backup_mailto
       rc.path '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
       rc.run_action action
     end

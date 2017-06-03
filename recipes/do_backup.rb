@@ -22,63 +22,73 @@
 
 attribs = node[cookbook_name]
 
-#directory "#{attribs['script_dir']}/keys" { recursive true }
-#directory attribs['log_dir'] { recursive true }
+dir_keys = "#{attribs['dir']['script']}/keys"
+directory dir_keys { recursive true }
+
+directory attribs['dir']['log'] { recursive true }
 
 attribs['targets'].each do |t|
-  #testing
-  s3 = Driver.const_get('S3').new(t, dirs: attribs['dir'], bins: attribs['bin'])
-  s3.init_backup_enc(run_context)
-  s3.sched_script(:create, run_context)
+  tname = t[:id] || 'default'
 
-  s3.init_reload_enc(run_context)
-  s3.do_cleanup_enc(run_context)
+  is_backup = t.has_key?(:backup) ? t[:backup] : true
+  is_load = t.has_key?(:load) ? t[:load] : false
+
+  pub_path = 
+    if t[:encrypt_pub_key]
+      path_key = "#{dir_keys}/pub_#{tname.gsub(' ', '-')}.pem"
+
+      file path_key do
+        content   t[:encrypt_pub_key]
+        mode      0600
+        owner     'root'
+        group     'root'
+        sensitive true
+        action    is_backup ? :create_if_missing : :delete
+      end
+
+      path_key
+    elsif t[:encrypt_pub_path]
+      t[:encrypt_pub_path]
+    else
+      nil
+    end
+
+  t[:drivers].each do |drname, dr|
+    inst = Driver.const_get(drname).new(
+      tname,
+      paths: t[:paths],
+      backup_sched: t[:backup_sched],
+      backup_mailto: t[:backup_mailto],
+      vars: dr,
+      dir: attribs['dir'],
+      bin: attribs['bin']
+    )
+
+    inst.key_pub = pub_path
+    inst.sched_script(is_backup ? :create : :delete, run_context)
+  end
+
+#  if is_load
+#    priv_path = 
+#      if t[:encrypt_priv_key]
+#        path_key = "#{dir_keys}/priv_#{tname.gsub(' ', '-')}.pem"
+
+#        file path_key do
+#          content   t[:encrypt_priv_key]
+#          mode      0600
+#          owner     'root'
+#          group     'root'
+#          sensitive true
+#          action    :create_if_missing
+#        end
+
+#        path_key
+#      elsif t[:encrypt_priv_path]
+#        t[:encrypt_priv_path]
+#      else
+#        nil
+#      end
+
+#  end
+
 end
-
-
-#pub_key_file = "#{attribs['script_dir']}/pub.key"
-
-#file pub_key_file do
-#  content   attribs['encrypt']['pub_key']
-#  mode      0600
-#  owner     'root'
-#  group     'root'
-#  sensitive true
-#  only_if   { is_any_enc }
-#end
-
-#attribs['backups'].each do |back|
-#  snam   = back[:script_name] || 'default'
-#  sname  = "#{snam.gsub(' ', '-')}_backup2s3"
-#  enable = back.has_key?(:enable) ? back[:enable] : true
-#
-#  template "#{attribs['script_dir']}/#{sname}" do
-#    mode   0644
-#    source 'backup_file_to_s3.erb'
-#    variables(
-#      :aws_bin      => attribs['aws_bin'],
-#      :tar_bin      => attribs['tar_bin'],
-#      :tmp_dir      => attribs['tmp_dir'],
-#      :bucket       => back[:bucket] || attribs['bucket'],
-#      :region       => back[:region] || attribs['region'],
-#      :pub_key_file => pub_key_file,
-#      :paths        => back[:paths]
-#    )
-#    action( enable ? :create : :delete )
-#  end
-#
-#  sched = attribs['cron']['sched'].split(' ')
-#  cron_d sname do
-#    command "bash #{attribs['script_dir']}/#{sname} >> "\
-#            "#{attribs['log_dir']}/#{sname}.log 2>&1"
-#    minute  sched[0]
-#    hour    sched[1]
-#    day     sched[2]
-#    month   sched[3]
-#    weekday sched[4]
-#    mailto  attribs['cron']['mailto']
-#    path    '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
-#
-#    action( enable ? :create : :delete )
-#  end
-#end

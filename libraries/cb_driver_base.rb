@@ -25,37 +25,41 @@ module CloudBackup
     class Base
       include CloudBackup::DriverLib
 
-      def initialize(target, dirs: {}, bins: {})
+      attr_accessor :key_pub
+      attr_accessor :key_priv
+
+      def initialize(
+        name,
+        paths: nil,
+        backup_sched: nil,
+        backup_mailto: nil,
+        dir: {}, bin: {}, vars: nil
+      )
+        @name  = name || 'default'
+        @paths = paths || []
+
+        @backup_sched  = backup_sched || '0 0 * * *'
+        @backup_mailto = backup_mailto || "''"
+
+        # Driver vars
+        @vars = vars || {}
 
         # dirs and bins
-        @dir_script = dirs[:script] || '/opt/cloud-backup'
-        @dir_log    = dirs[:log] || '/var/log/cloud-backup'
-        @dir_tmp    = dirs[:tmp] || '/tmp/cloud-backup'
+        @dir = dir
+        @bin = bin
 
-        @bin_tar = bins[:tar] || '/bin/tar'
-        @bin_aws = bins[:aws] || '/usr/local/bin/aws'
-
-        # default name
-        @name   = target[:id] || 'default'
-
-        # just store the node attribs
-        @target = target
-
-        # path to encryption keys if used
-        @key_pub  = nil
-        @key_priv = nil
-      end
-
-      ## Call this function before attempting any backup script creation.
-      ##
-      def init_backup_enc(rc)
-        @key_pub = do_init_enc('pub', rc)
-      end
-
-      ## Call this function before attempting any reload of backups.
-      ##
-      def init_reload_enc(rc)
-        @key_priv = do_init_enc('priv', rc)
+        unless @dir.has_key?['script']
+          @dir['script'] = '/opt/cloud-backup'
+        end
+        unless @dir.has_key?['log']
+          @dir['log'] = '/var/log/cloud-backup'
+        end
+        unless @dir.has_key?['tmp']
+          @dir['tmp'] = '/tmp/cloud-backup'
+        end
+        unless @bin.has_key?['tar']
+          @bin['tar'] = '/bin/tar'
+        end
       end
 
       ## Create the backup script and set cron schedule to run it.
@@ -63,8 +67,8 @@ module CloudBackup
       ## Example only. Override this method in Subclass.
       ##
       def sched_script(action, rc)
-        do_render_script('cb-none', 'cloud-backup-none.erb', {}, action, rc)
-        do_cron_sched('cb-none', action, rc)
+        do_render_script('none', {}, action, rc)
+        do_cron_sched('none', action, rc)
       end
 
     end
