@@ -30,6 +30,9 @@ attribs['targets'].each do |t|
   s3 = Driver.const_get('S3').new(t, dirs: attribs['dir'], bins: attribs['bin'])
   s3.init_backup_enc(run_context)
   s3.sched_script(:create, run_context)
+
+  s3.init_reload_enc(run_context)
+  s3.do_cleanup_enc
 end
 
 

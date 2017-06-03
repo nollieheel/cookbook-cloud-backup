@@ -48,10 +48,11 @@ default['cookbook-cloud-backup']['targets'] = [
 #    :encrypt_pub_path  => nil, # key can also be given as a path
 #    :encrypt_priv_path => nil, # key can also be given as a path
 #
-#    :drivers => {} # overrides default values in 'default_drivers'
+#    :drivers => {}
 #  }
 ]
 
+# TODO Do not do this: i.e. DO DEFAULT DRIVERS
 default['cookbook-cloud-backup']['default_drivers'] = {
   'S3' => {
     :enable => true, # default: true

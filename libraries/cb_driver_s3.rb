@@ -24,11 +24,11 @@ module CloudBackup
   module Driver
     class S3 < CloudBackup::Driver::Base
       TEMPLATE_SRC = 'cloud-backup-s3.erb'
-      PREF_SRC = 'cb-s3'
+      PREF_SCRIPT = 'cb-s3'
 
       def sched_script(action, rc)
         do_render_script(
-          PREF_SRC, TEMPLATE_SRC,
+          PREF_SCRIPT, TEMPLATE_SRC,
           {
             :paths        => @target[:paths],
             :dir_tmp      => @dir_tmp,
@@ -41,7 +41,7 @@ module CloudBackup
           },
           action, rc
         )
-        do_cron_sched(PREF_SRC, action, rc)
+        do_cron_sched(PREF_SCRIPT, action, rc)
       end
 
     end

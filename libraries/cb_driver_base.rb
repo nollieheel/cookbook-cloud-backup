@@ -52,10 +52,19 @@ module CloudBackup
         @key_pub = do_init_enc('pub', rc)
       end
 
+      ## Call this function before attempting any reload of backups.
+      ##
+      def init_reload_enc(rc)
+        @key_priv = do_init_enc('priv', rc)
+      end
+
       ## Create the backup script and set cron schedule to run it.
       ##
+      ## Example only. Override this method in Subclass.
+      ##
       def sched_script(action, rc)
-        # Override in Subclass
+        do_render_script('cb-none', 'cloud-backup-none.erb', {}, action, rc)
+        do_cron_sched('cb-none', action, rc)
       end
 
     end

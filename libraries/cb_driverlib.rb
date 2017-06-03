@@ -52,6 +52,21 @@ module CloudBackup
       end
     end
 
+    ## Delete the (private) key file.
+    ##
+    def do_cleanup_enc(rc)
+      if @key_priv
+        #rf = Chef::Resource::Notification.new("", :delete)
+        begin
+          resources("file[#{@key_priv}]")
+          rn = Chef::Resource::Notification.new("file[#{@key_priv}]", :delete)
+        rescue Chef::Exceptions::ResourceNotFound
+          rf = Chef::Resource::File.new(@key_priv, rc)
+          rf.run_action :delete
+        end
+      end
+    end
+
     def get_script_path(pref)
       "#{@dir_script}/#{pref}_#{@name.gsub(' ', '-')}"
     end
@@ -95,5 +110,4 @@ module CloudBackup
     end
 
   end
-
 end
