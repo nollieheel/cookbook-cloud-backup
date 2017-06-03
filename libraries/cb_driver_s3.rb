@@ -25,6 +25,7 @@ module CloudBackup
     class S3 < CloudBackup::Driver::Base
 
       def sched_script(action, rc)
+        super
         do_render_script(
           's3',
           {

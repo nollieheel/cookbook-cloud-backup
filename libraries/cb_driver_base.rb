@@ -48,27 +48,26 @@ module CloudBackup
         @dir = dir
         @bin = bin
 
-        unless @dir.has_key?['script']
+        unless @dir.has_key?('script')
           @dir['script'] = '/opt/cloud-backup'
         end
-        unless @dir.has_key?['log']
+        unless @dir.has_key?('log')
           @dir['log'] = '/var/log/cloud-backup'
         end
-        unless @dir.has_key?['tmp']
+        unless @dir.has_key?('tmp')
           @dir['tmp'] = '/tmp/cloud-backup'
         end
-        unless @bin.has_key?['tar']
+        unless @bin.has_key?('tar')
           @bin['tar'] = '/bin/tar'
         end
       end
 
-      ## Create the backup script and set cron schedule to run it.
-      ##
-      ## Example only. Override this method in Subclass.
+      ## Extend this in subclass. Should create backup script and schedule it.
       ##
       def sched_script(action, rc)
-        do_render_script('none', {}, action, rc)
-        do_cron_sched('none', action, rc)
+        rd = Chef::Resource::Directory.new(@dir['script'], rc)
+        rd.recursive true
+        rd.run_action :create
       end
 
     end

@@ -25,7 +25,7 @@ module CloudBackup
     PREF_SCRIPT = 'cb-'
 
     def get_script_path(pref)
-      "#{@dir_script}/#{PREF_SCRIPT}#{pref.downcase}_#{@name.gsub(' ', '-')}"
+      "#{@dir['script']}/#{PREF_SCRIPT}#{pref.downcase}_#{@name.gsub(' ', '-')}"
     end
 
     ## Just create the cloud backup shell script.
@@ -56,7 +56,7 @@ module CloudBackup
       sname = ::File.basename(spath)
 
       rc = Chef::Resource::CronD.new(sname, rc)
-      rc.command "bash #{spath} >> #{@dir_log}/#{sname}.log 2>&1"
+      rc.command "bash #{spath} >> #{@dir['log']}/#{sname}.log 2>&1"
       rc.minute sched[0]
       rc.hour sched[1]
       rc.day sched[2]

@@ -23,7 +23,7 @@
 attribs = node[cookbook_name]
 
 dir_keys = "#{attribs['dir']['script']}/keys"
-directory dir_keys { recursive true }
+directory(dir_keys) { recursive true }
 
 directory attribs['dir']['log'] { recursive true }
 
