@@ -29,4 +29,4 @@ if ids.length != ids.uniq.length
 end
 
 include_recipe "#{cookbook_name}::do_backup"
-#include_recipe "#{cookbook_name}::do_reload"
+include_recipe "#{cookbook_name}::do_load"

@@ -24,8 +24,15 @@ attribs = node[cookbook_name]
 
 dir_keys = "#{attribs['dir']['script']}/keys"
 
-directory(dir_keys) { recursive true }
-directory(attribs['dir']['tmp']) { recursive true }
+directory dir_keys do
+  recursive true
+  action :nothing
+end.run_action(:create)
+
+directory attribs['dir']['tmp'] do
+  recursive true
+  action :nothing
+end.run_action(:create)
 
 attribs['targets'].each do |t|
   tname = t[:id] || 'default'
